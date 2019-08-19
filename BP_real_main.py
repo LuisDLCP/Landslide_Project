@@ -186,7 +186,8 @@ def main(dset_name):
     plt.close('all') # Cerrar todas las figuras previas
 
     # Se declaran y cargan variables
-    f = hp.File(os.getcwd()+"/Data_set/"+dset_name,'r')
+    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set" # Ruta del Raw Data
+    f = hp.File(dirc+"/Data_set/"+dset_name,'r')
     global dset
     dset = f['sar_dataset']
     prm = sp.get_parameters2(dset)

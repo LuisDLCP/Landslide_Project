@@ -1,12 +1,15 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Created on Mon Jun  3 12:23:13 2019
+Created on Mon Aug 19 17:09:44 2019
 ---------------------------------------------------
-            INTERFEROMETRIA GENERAL
+                INTERFEROMETRIA
+                (Main Program)
 ---------------------------------------------------
-* Se obtendra el mapa de coherencia
-* Se obtendra un grafico de desplazamientos a lo largo del tiempo
-* Datos reales RMA y BP
-* Se compararan los 2 graficos de desplazamientos vs tiempo, para RMA y BP
+* Se obtendran los mapas de desplazamientos 
+* Se obtendran las curvas de desplazamientos 
+* Se usara el algoritmo FDBP para la formacion de imagenes
+
 @author: LuisDLCP
 """
 import numpy as np
@@ -23,7 +26,7 @@ import os
 
 os.chdir(os.path.dirname(__file__)) # get the current path
 
-show = False
+show = True # esta variable muestra ciertas figuras 
 n_im = 3 #4656 # Numero de imagenes a considerar
 
 def get_images(algorithm=None):
@@ -144,7 +147,7 @@ def make_interferometry(data,algorithm=None):
         plt.colorbar(im,cax=cax,label='',extend='both')
         fig.savefig(os.getcwd()+"/Results/"+direction, orientation='landscape')
 
-    # Obteniendo el mapa de distancias, aka, Interferograma
+    # Obteniendo el mapa de desplazamientos, aka, Interferograma
     par = sp.get_parameters()
     global c,fc
     c,fc = par['c'],par['fc']
@@ -270,7 +273,40 @@ def make_interferometry(data,algorithm=None):
       """
     return {'d_t':desp, 't':time_dset2}
 
-def compare_displacement(ds1,ds2):
+def get_displacements(ds):
+    """ En esta funcion se grafican las curvas de desplazamientos promedios.
+    """
+    # Se obtienen una matriz de datos con los desplazamientos promedios de cada imagen
+    t = ds['t']
+    t = t[:n_im-1]
+    t = mplt.dates.date2num(t)
+    d = ds['d_t']
+    
+    # Se grafica la curva Desplazamientos promedios vs Tiempo
+    formatter = DateFormatter("%d/%m - %H:%M")
+    for i in range(len(d)):
+        # Hallando el valor promedio final x zona
+        mean_bp = d[i].mean()
+        print("Valor promedio BP_zona"+str(i)+": ",mean_bp)
+        print("")
+        # Graficando
+        direction = 'desplazamientosPromedios_dset10-5000_zona'+str(i)
+
+        fig, ax= plt.subplots(figsize=(10,7))
+        ax.plot_date(t,d[i],'b',marker='',markerfacecolor='b',markeredgecolor='b',label='Back Projection')
+        ax.set(xlabel='Tiempo',ylabel='Desplazamiento(mm)',title="Desplazamientos promedios\n(Zona "+str(i)+')')
+        ax.xaxis.set_major_formatter(formatter)
+        ax.xaxis.set_tick_params(rotation=20)
+        #ax.set_xlim([R.min(),R.max()])
+        ax.set_ylim([-c*1000*4/(4*fc),c*1000*4/(4*fc)])
+        ax.grid(linestyle='dashed')
+        ax.legend()
+        plt.show()
+        fig.savefig(os.getcwd()+"/Results/Desplazamientos/"+direction,orientation='landscape')
+        
+        return 'Ok'
+
+def compare_displacements(ds1,ds2):
     """ En esta funcion se grafican las curvas de desplazamientos promedios para cada algoritmo y 
         por cada zona. Luego de ello se comparan ambas curvas graficandolos en una sola grafica. 
     """
@@ -335,7 +371,7 @@ def main():
     #disp2 = make_interferometry(data2,algorithm='RMA')
 
     # Se comaparan las curvas de desplazamientos de los 2 algoritmos
-    compare_displacement(disp1,disp2)
+    get_displacements(disp1)
     print("\nTiempo total: ",timeit.default_timer() - start_time,"s")
 
     return 'Ok'
