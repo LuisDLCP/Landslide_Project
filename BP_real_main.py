@@ -163,8 +163,8 @@ def plot_image(data2):
     Im = data2['In'].copy()
     title = data2['file_name']
     title = title[:-5]
-    title_name='Imagen Final(BP)\n'+title
-    direction ='Imagen Final_BP_'+title
+    title_name='Imagen_Final(BP)\n'+title
+    direction ='ImageBP_'+title
 
     # b) Grafica final(magnitud)
     cmap = "plasma"
@@ -178,7 +178,7 @@ def plot_image(data2):
     cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
     plt.colorbar(im,cax=cax,label='Reflectividad(dB)',extend='both')
 
-    fig.savefig(os.getcwd()+"/Results/Imagenes_finales_reconstruidas_BP/"+direction,orientation='landscape')
+    fig.savefig(os.getcwd()+"/Results/Imaging_BP/Images/"+direction,orientation='landscape')
 
     return {'Im':Im, 'x_min':-Lx/2, 'x_max':Lx/2, 'y_min':yi, 'y_max':yi+Ly}
 
@@ -186,8 +186,8 @@ def main(dset_name):
     plt.close('all') # Cerrar todas las figuras previas
 
     # Se declaran y cargan variables
-    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set" # Ruta del Raw Data
-    f = hp.File(dirc+"/Data_set/"+dset_name,'r')
+    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/example/" # Ruta del Raw Data
+    f = hp.File(dirc+dset_name,'r')
     global dset
     dset = f['sar_dataset']
     prm = sp.get_parameters2(dset)

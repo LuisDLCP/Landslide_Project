@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mplt
 from matplotlib.dates import DateFormatter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import RMA_real_main as RMA
+#import RMA_real_main as RMA
 import BP_real_main as BP
 import sarPrm as sp
 import timeit
@@ -27,7 +27,8 @@ import os
 os.chdir(os.path.dirname(__file__)) # get the current path
 
 show = True # esta variable muestra ciertas figuras 
-n_im = 3 #4656 # Numero de imagenes a considerar
+n_im = 1175 #4656 # Numero de imagenes a considerar
+i_o = 10 # Numero de imagen inicial(10)
 
 def get_images(algorithm=None):
     """ Esta funcion se encarga de graficar las imagenes SAR usando un algoritmo dado por 
@@ -45,7 +46,7 @@ def get_images(algorithm=None):
         #Ims = np.load("Set_images_RMA.npy").item()
         #dates = np.load("Dates_RMA.npy")
         for i in range(n_im):
-            i += 10 # Empieza en la posicion 10
+            i += i_o # Empieza en la posicion 10
             data = RMA.main("dset_"+str(i)+".hdf5")
             #Ims[10+i] = data['Sf_n']
             dates.append(data['date'])
@@ -60,7 +61,7 @@ def get_images(algorithm=None):
         #Ims = np.load("Set_images_BP.npy").item()
         #dates = np.load("Dates_BP.npy")
         for i in range(n_im): #(4991):
-            i += 10 # Empieza en la posicion 10
+            i += i_o # Empieza en la posicion 10
             data = BP.main("dset_"+str(i)+".hdf5") 
             #Ims[i] = data['Im']
             dates.append(data['date'])
@@ -91,7 +92,7 @@ def make_interferometry(data,algorithm=None):
     coh = np.zeros((len(Im),len(Im.T)),dtype=complex)
 
     for i in range(n_im-1):
-        i += 10 # Valor inicial
+        i += i_o # Valor inicial
         Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i)+".npy")
         Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i+1)+".npy")
         f1 += Im1*Im2.conjugate()
@@ -104,12 +105,12 @@ def make_interferometry(data,algorithm=None):
         plt.close('all')
         cmap ="plasma"
         if algorithm == "BP":
-            title_name ='Mapa de coherencia(BP)\n[dset10-5000]'
-            direction ='Interferogramas_BP/coherencia_BP_dset10-5000.png'
+            title_name ='Mapa de coherencia(BP)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
+            direction ='Coherencia_BP_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
 
         elif algorithm == "RMA":
-            title_name ='Mapa de coherencia(RMA)\n[dset10-5000]'
-            direction ='Interferogramas_RMA/coherencia_RMA_dset10-5000.png'
+            title_name ='Mapa de coherencia(RMA)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
+            direction ='Coherencia_RMA_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
         #vmin = np.amin(20*np.log10(abs(Sf_n)))+55 #dB
         #vmax = np.amax(20*np.log10(abs(Sf_n)))#-20
 
@@ -120,7 +121,7 @@ def make_interferometry(data,algorithm=None):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
         plt.colorbar(im,cax=cax,label='',extend='both')
-        fig.savefig(os.getcwd()+"/Results/"+direction, orientation='landscape')
+        fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Coherence_maps/"+direction, orientation='landscape')
 
     # Sacando una mascara de [0.7,1] para la coherencia
     mask = coh<=0.7
@@ -130,12 +131,12 @@ def make_interferometry(data,algorithm=None):
     if show:
         cmap ="plasma"
         if algorithm == "BP":
-            title_name ='Mapa de coherencia recortada(BP)\n[dset10-5000]'
-            direction ='Interferogramas_BP/coherenciaCut_BP_dset10-5000.png'
+            title_name ='Mapa de coherencia recortada(BP)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
+            direction ='CoherenciaCut_BP_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
 
         elif algorithm == "RMA":
-            title_name ='Mapa de coherencia recortada(RMA)\n[dset10-5000]'
-            direction ='Interferogramas_RMA/coherenciaCut_RMA_dset10-5000.png'
+            title_name ='Mapa de coherencia recortada(RMA)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
+            direction ='CoherenciaCut_RMA_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
         #vmin = np.amin(20*np.log10(abs(Sf_n)))+55 #dB
         #vmax = np.amax(20*np.log10(abs(Sf_n)))#-20
         fig, ax = plt.subplots()
@@ -145,7 +146,7 @@ def make_interferometry(data,algorithm=None):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
         plt.colorbar(im,cax=cax,label='',extend='both')
-        fig.savefig(os.getcwd()+"/Results/"+direction, orientation='landscape')
+        fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Coherence_maps/"+direction, orientation='landscape')
 
     # Obteniendo el mapa de desplazamientos, aka, Interferograma
     par = sp.get_parameters()
@@ -164,12 +165,12 @@ def make_interferometry(data,algorithm=None):
             if algorithm == "BP":
                 title_name ='Interferograma (BP) \ndset'+'['+str(i1)+']-['+str(i1+1)+']'
                 #direction ='Interferogramas_BP/'+'Itf_BP_dset'+'['+str(i+10)+']-['+str(i+11)+'].png'
-                direction ='Interferogramas_BP/'+'Itf_BP_dset'+str(i)+'.png'
+                direction ='Itf_BP_dset'+str(i)+'.png'
 
             elif algorithm == "RMA":
                 title_name ='Interferograma (RMA) \ndset'+'['+str(i1)+']-['+str(i1+1)+']'
                 #direction ='Interferogramas_RMA/'+'Itf_RMA_dset'+'['+str(i+10)+']-['+str(i+11)+'].png'
-                direction ='Interferogramas_RMA/'+'Itf_RMA_dset'+str(i)+'.png'
+                direction ='Itf_RMA_dset'+str(i)+'.png'
             cmap = plt.cm.plasma #brg
             cmap.set_bad('black',1.)
             #vmin = np.amin(20*np.log10(abs(Sf_n)))+55 #dB
@@ -181,7 +182,7 @@ def make_interferometry(data,algorithm=None):
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
             plt.colorbar(im,cax=cax,label='desplazamiento(mm)',extend='both')
-            fig.savefig(os.getcwd()+"/Results/"+direction,orientation='landscape')
+            fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_complete/Images/"+direction,orientation='landscape')
             plt.close()
 
     # Hallando la curva de distancias vs tiempo
@@ -218,12 +219,12 @@ def make_interferometry(data,algorithm=None):
             if show and i == 0: #
                 if algorithm == "BP":
                     title_name ='Interferograma recortado(BP) \nZona '+str(z)+' - dset'+'['+str(i1)+']-['+str(i1+1)+']'
-                    direction ='Interferogramas_BP/'+'Itf_BP_rec_zona_'+str(z)+'_dset'+'['+str(i1)+']-['+str(i1+1)+'].png'
+                    direction ='Itf_BP_rec_zona_'+str(z)+'_dset'+'['+str(i1)+']-['+str(i1+1)+'].png'
                     #direction ='Interferogramas_BP/'+'Itf_BP_dset'+str(i)+'.png'
 
                 elif algorithm == "RMA":
                     title_name ='Interferograma recortado(RMA) \nZona '+str(z)+' - dset'+'['+str(i1)+']-['+str(i1+1)+']'
-                    direction ='Interferogramas_RMA/'+'Itf_RMA_rec_zona_'+str(z)+'_dset'+'['+str(i1)+']-['+str(i1+1)+'].png'
+                    direction ='Itf_RMA_rec_zona_'+str(z)+'_dset'+'['+str(i1)+']-['+str(i1+1)+'].png'
                     #direction ='Interferogramas_RMA/'+'Itf_RMA_dset'+str(i)+'.png'
                 cmap = plt.cm.plasma #brg
                 cmap.set_bad('black',1.)
@@ -236,7 +237,7 @@ def make_interferometry(data,algorithm=None):
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
                 plt.colorbar(im,cax=cax,label='desplazamiento(mm)',extend='both')
-                fig.savefig(os.getcwd()+"/Results/"+direction,orientation='landscape')
+                fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_complete/Images/"+direction,orientation='landscape')
 
     #t = np.arange(len(Ims)-1)+10 # Variable x, tiempo
     time_dset = np.load("Dates_BP.npy")
@@ -290,7 +291,7 @@ def get_displacements(ds):
         print("Valor promedio BP_zona"+str(i)+": ",mean_bp)
         print("")
         # Graficando
-        direction = 'desplazamientosPromedios_dset10-5000_zona'+str(i)
+        direction = 'desplazamientosPromedios_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)+'.png'
 
         fig, ax= plt.subplots(figsize=(10,7))
         ax.plot_date(t,d[i],'b',marker='',markerfacecolor='b',markeredgecolor='b',label='Back Projection')
@@ -298,13 +299,13 @@ def get_displacements(ds):
         ax.xaxis.set_major_formatter(formatter)
         ax.xaxis.set_tick_params(rotation=20)
         #ax.set_xlim([R.min(),R.max()])
-        ax.set_ylim([-c*1000*4/(4*fc),c*1000*4/(4*fc)])
+        ax.set_ylim([-c*1000/(4*fc*5),c*1000/(4*fc*5)]) # En (mm)
         ax.grid(linestyle='dashed')
         ax.legend()
         plt.show()
-        fig.savefig(os.getcwd()+"/Results/Desplazamientos/"+direction,orientation='landscape')
+        fig.savefig(os.getcwd()+"/Results/Displacement_BP/"+direction,orientation='landscape')
         
-        return 'Ok'
+    return 'Ok'
 
 def compare_displacements(ds1,ds2):
     """ En esta funcion se grafican las curvas de desplazamientos promedios para cada algoritmo y 
@@ -331,7 +332,7 @@ def compare_displacements(ds1,ds2):
         print("Valor promedio RMA_zona"+str(i)+": ",mean_rma)
         print("")
         # Graficando
-        direction = 'desplazamientosPromedios_dset10-5000_zona'+str(i)
+        direction = 'desplazamientosPromedios_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)
 
         fig, ax= plt.subplots(figsize=(10,7))
         ax.plot_date(t1,d1[i],'b',marker='',markerfacecolor='b',markeredgecolor='b',label='Back Projection')
@@ -347,6 +348,9 @@ def compare_displacements(ds1,ds2):
         fig.savefig(os.getcwd()+"/Results/Desplazamientos/"+direction,orientation='landscape')
 
     return 'Ok'
+
+#def create_video():
+    
 
 def main():
     plt.close('all')

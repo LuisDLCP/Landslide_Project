@@ -75,9 +75,9 @@ def get_parameters2(dset):
     R_max=Nf*c/(2*BW) # Distancia maxima teorica 
 
     # Definicion de las dimensiones de la imagen ("dh" y "dw" usados solo en BP)
-    w = 400 # Ancho de la imagen(m)
-    h = 650 # Altura de la imagen(m)
-    hi = 300 # Posicion inicial en el eje del rango
+    w = 600 # Ancho de la imagen(m)
+    h = 700 # Altura de la imagen(m)
+    hi = 100 # Posicion inicial en el eje del rango
     dw = 1 # Paso en el eje del ancho(m)
     dh = 1 # Paso en el eje de la altura(m)
 
