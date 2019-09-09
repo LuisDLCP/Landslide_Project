@@ -106,7 +106,7 @@ def make_interferometry(data,algorithm=None):
         cmap ="plasma"
         if algorithm == "BP":
             title_name ='Mapa de coherencia(BP)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
-            direction ='Coherencia_BP_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
+            direction ='Coherencia_BP_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'.png'
 
         elif algorithm == "RMA":
             title_name ='Mapa de coherencia(RMA)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
@@ -132,11 +132,11 @@ def make_interferometry(data,algorithm=None):
         cmap ="plasma"
         if algorithm == "BP":
             title_name ='Mapa de coherencia recortada(BP)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
-            direction ='CoherenciaCut_BP_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
+            direction ='CoherenciaCut_BP_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'.png'
 
         elif algorithm == "RMA":
             title_name ='Mapa de coherencia recortada(RMA)\n[dset'+str(i_o)+'-'+str(i_o+n_im-1)+']'
-            direction ='CoherenciaCut_RMA_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'].png'
+            direction ='CoherenciaCut_RMA_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'.png'
         #vmin = np.amin(20*np.log10(abs(Sf_n)))+55 #dB
         #vmax = np.amax(20*np.log10(abs(Sf_n)))#-20
         fig, ax = plt.subplots()
@@ -156,7 +156,7 @@ def make_interferometry(data,algorithm=None):
     if show:
         for i in range(n_im-1):
             # Hallando el interferograma 'i'-esimo
-            i1 = i+10
+            i1 = i+i_o
             Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
             Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
             disp = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc) # Distancias en mm
@@ -201,10 +201,10 @@ def make_interferometry(data,algorithm=None):
     for z in range(len(zone_indexes)): # Hallando los desplazamientos promedios por zona
         idc = zone_indexes[z]
         for i in range(n_im-1):
-            i1 = i+10 # 10 es el valor inicial de las imagenes
+            i1 = i+i_o # 10 es el valor inicial de las imagenes
             Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
             Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
-            d_i = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc)
+            d_i = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc) # dist(mm)
             # ----- Grafica ------
             d_i2 = d_i.copy()
             d_i2[mask] = np.nan

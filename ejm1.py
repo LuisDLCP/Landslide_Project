@@ -41,4 +41,23 @@ rs = sb.Popen(['ffmpeg',
                '-profile:v','high',
                '-crf','20'
                ])
+
+#%% probes
+j = 0    
+while True:
+    for i in range(10):
+        if i==8:
+            print("An interruption ocurred!")
+            break
+        print("Normal sequency!")
+        
+    j += 1
     
+    if j==3:
+        print("The second interruption ocurred!")
+        break
+    
+    print("Continue ....")
+
+print("Finishing ...")
+
