@@ -61,3 +61,47 @@ while True:
 
 print("Finishing ...")
 
+#%% creating a txt file
+f=open("myfirst_file.txt","w+")
+f.write("Hello word!\n")
+f.write("How are you?\n")
+
+f.close()
+
+#%% media
+
+a=np.random.randint(10,size=(5))
+a[3]=np.nan
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

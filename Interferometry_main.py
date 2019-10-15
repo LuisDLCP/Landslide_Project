@@ -20,15 +20,17 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 #import RMA_real_main as RMA
 import BP_real_main as BP
 import sarPrm as sp
+import time
 import timeit
 import datetime
+import random
 import os
 
 os.chdir(os.path.dirname(__file__)) # get the current path
 
 show = True # esta variable muestra ciertas figuras 
-n_im = 1175 #4656 # Numero de imagenes a considerar
-i_o = 10 # Numero de imagen inicial(10)
+n_im = 2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
+i_o = 100 #10 # Numero de imagen inicial(10)
 
 def get_images(algorithm=None):
     """ Esta funcion se encarga de graficar las imagenes SAR usando un algoritmo dado por 
@@ -62,14 +64,39 @@ def get_images(algorithm=None):
         #dates = np.load("Dates_BP.npy")
         for i in range(n_im): #(4991):
             i += i_o # Empieza en la posicion 10
-            data = BP.main("dset_"+str(i)+".hdf5") 
+            data = BP.main("dset_"+str(i)+".hdf5",i-i_o) 
             #Ims[i] = data['Im']
             dates.append(data['date'])
             np.save(os.getcwd()+"/Results/Output_BP/Im_"+str(i)+".npy",data['Im']) # Imagenes de todo el dataset
-        np.save("Parameters_BP",data) # Parametros geometricos como dimensiones y grilla de la imagen
-        np.save("Dates_BP",np.array(dates)) # Fechas de las iamgenes tomadas de todo el dset
+        np.save("Parameters_BP2",data) # Parametros geometricos como dimensiones y grilla de la imagen
+        np.save("Dates_BP_"+str(n_im),np.array(dates)) # Fechas de las iamgenes tomadas de todo el dset
 
     return 'Ok'
+
+# This function calibrates each image after reconstruction
+def calibration(msk,Im):
+    """    
+    # 1) Create a mask with the highest value of coherence in 1 
+    M = (coh>=coh.max()) # bool type
+    M = M*1 # int type
+        # ...This part helps to choose randonly only a value if there's many maximums  
+    M_aux = np.linspace(1,100,len(M)*len(M[0]))
+    random.shuffle(M_aux)
+    M_aux = M_aux.reshape(len(M),len(M[0]))
+    M = M*M_aux
+    M = (M==M.max())
+    M = M*1
+    """    
+    # 2) Multiply the image by the mask
+    M = Im*msk
+        # 3) Get the phase factor 
+    pf = np.angle(np.sum(M))
+    #print("Phase without compensation: ",np.angle(Im[0,0]))
+        # 4) Finally calculate the difference of phases 
+    M2 = Im*np.exp(-1j*pf)
+    #print("Phase with compensation: ",np.angle(M3[0,0]))#np.angle(np.sum(M3*M)))
+
+    return M2
 
 def make_interferometry(data,algorithm=None):
     """ Esta funcion se encarga de obtener los  mapas de desplazamientos, o los 
@@ -86,20 +113,21 @@ def make_interferometry(data,algorithm=None):
            en una matriz.
     """
     # Obteniendo el mapa de coherencia
-    Im = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_10.npy") # Se carga la imagen 10
+    Im = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i_o)+".npy") # Se carga la imagen 10
     f1 = np.zeros((len(Im),len(Im.T)),dtype=complex)
     f2 = np.zeros((len(Im),len(Im.T)),dtype=complex)
     coh = np.zeros((len(Im),len(Im.T)),dtype=complex)
 
-    for i in range(n_im-1):
+    for i in range(n_im):
         i += i_o # Valor inicial
         Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i)+".npy")
-        Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i+1)+".npy")
-        f1 += Im1*Im2.conjugate()
-        f2 += np.sqrt((abs(Im1)**2)*(abs(Im2)**2))
+        if i<n_im+i_o-1:
+            Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i+1)+".npy")
+            f1 += Im1*Im2.conjugate()
+        f2 += abs(Im1)**2 #np.sqrt((abs(Im1)**2)*(abs(Im2)**2))
 
-    coh = abs(f1/f2)
-
+    coh = (n_im/(n_im-1))*abs(f1/f2)
+    
     # Graficando la coherencia
     if show:
         plt.close('all')
@@ -125,6 +153,7 @@ def make_interferometry(data,algorithm=None):
 
     # Sacando una mascara de [0.7,1] para la coherencia
     mask = coh<=0.7
+    coh2 = np.copy(coh)
     coh[mask] = np.nan
 
     # Graficando con la mascara
@@ -148,6 +177,18 @@ def make_interferometry(data,algorithm=None):
         plt.colorbar(im,cax=cax,label='',extend='both')
         fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Coherence_maps/"+direction, orientation='landscape')
 
+    # Hallando el factor de calibracion
+        # 1) Create a mask with the highest value of coherence in 1 
+    M = (coh2>=coh2.max()) # bool type
+    M = M*1 # int type
+        # ...This part helps to choose randonly only a value if there's many maximums  
+    M_aux = np.linspace(1,100,len(M)*len(M[0]))
+    random.shuffle(M_aux)
+    M_aux = M_aux.reshape(len(M),len(M[0]))
+    M = M*M_aux
+    M = (M==M.max())
+    M = M*1
+    
     # Obteniendo el mapa de desplazamientos, aka, Interferograma
     par = sp.get_parameters()
     global c,fc
@@ -158,9 +199,14 @@ def make_interferometry(data,algorithm=None):
             # Hallando el interferograma 'i'-esimo
             i1 = i+i_o
             Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
+            Im1 = calibration(M,Im1)
+            
             Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
+            Im2 = calibration(M,Im2)
+            
             disp = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc) # Distancias en mm
             disp[mask] = np.nan
+            
             # Graficando y guardando
             if algorithm == "BP":
                 title_name ='Interferograma (BP) \ndset'+'['+str(i1)+']-['+str(i1+1)+']'
@@ -181,40 +227,57 @@ def make_interferometry(data,algorithm=None):
             ax.grid()
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
-            plt.colorbar(im,cax=cax,label='desplazamiento(mm)',extend='both')
+            plt.colorbar(im,cax=cax,label='desplazamiento LOS(mm)',extend='both')
             fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_complete/Images/"+direction,orientation='landscape')
             plt.close()
 
     # Hallando la curva de distancias vs tiempo
     #-------Definiendo las zonas--------------
-    zone0 = np.array([0,650,0,400])
-    zone1 = np.array([0,100,100,200])
-    zone2 = np.array([0,100,200,300])
-    zone3 = np.array([100,200,100,200])
-    zone4 = np.array([100,200,200,300])
-    zone5 = np.array([200,300,100,200])
-    zone6 = np.array([200,300,200,300])
+    zone0 = np.array([0,len(Im2),0,len(Im2[0])])# ([0,700,0,600]) Toda la imagen
+    zone1 = np.array([0,200,100,300]) # Parte de la imagen
+    zone2 = np.array([0,200,300,500])
+    zone3 = np.array([200,400,100,300])
+    zone4 = np.array([200,400,300,500])
+    zone5 = np.array([400,600,100,300])
+    zone6 = np.array([400,600,300,500])
     zone_indexes = {0:zone0,1:zone1,2:zone2,3:zone3,4:zone4,5:zone5,6:zone6}
 
     desp = np.zeros((len(zone_indexes),n_im-1)) # Variable y: desplazamiento
-
-    for z in range(len(zone_indexes)): # Hallando los desplazamientos promedios por zona
+    desp_acc = np.zeros((len(zone_indexes),n_im-1)) # Variable y: desplazamiento acumulado
+    desv_std = np.zeros((len(zone_indexes),n_im-1)) # Standar Deviation
+    mag = np.zeros((len(zone_indexes),n_im-1)) # Image magnitud
+    
+    for z in range(len(zone_indexes)): # Hallando los desplazamientos promedios acumulados por zona
         idc = zone_indexes[z]
         for i in range(n_im-1):
             i1 = i+i_o # 10 es el valor inicial de las imagenes
             Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
+            Im1 = calibration(M,Im1)
+            
             Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
+            Im2 = calibration(M,Im2)
+            
             d_i = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc) # dist(mm)
+            
             # ----- Grafica ------
-            d_i2 = d_i.copy()
-            d_i2[mask] = np.nan
-            d_i2 = d_i2[idc[0]:idc[1],idc[2]:idc[3]]
+            #d_i2 = d_i.copy()
+            #d_i2[mask] = np.nan
+            #d_i2 = d_i2[idc[0]:idc[1],idc[2]:idc[3]]
             # -----   end --------
-            d_i[mask] = 0
+            d_i[mask] = np.nan
             d_i = d_i[idc[0]:idc[1],idc[2]:idc[3]]
-            if i==0: desp[z,i] = d_i.mean()
-            else: desp[z,i] = d_i.mean()+desp[z,i-1]
 
+            if i==0: 
+                desp[z,i] = np.nanmean(d_i) # mean ignoring nan values
+                desp_acc[z,i] = np.nanmean(d_i)
+                desv_std[z,i] = np.nanstd(d_i)
+                mag[z,i] = np.mean(abs(Im1))
+            else: 
+                desp[z,i] = np.nanmean(d_i)
+                desp_acc[z,i] = np.nanmean(d_i)+desp_acc[z,i-1]
+                desv_std[z,i] = np.nanstd(d_i)
+                mag[z,i] = np.mean(abs(Im1))
+               
             # Graficando la zona z-esima
             if show and i == 0: #
                 if algorithm == "BP":
@@ -231,16 +294,16 @@ def make_interferometry(data,algorithm=None):
                 #vmin = np.amin(20*np.log10(abs(Sf_n)))+55 #dB
                 #vmax = np.amax(20*np.log10(abs(Sf_n)))#-20
                 fig, ax = plt.subplots()
-                im=ax.imshow(d_i2,cmap,origin='lower',aspect='equal', extent=[idc[2]-200,idc[3]-200,idc[0]+300,idc[1]+300]) #, vmin=vmin, vmax=vmax)
+                im=ax.imshow(d_i,cmap,origin='lower',aspect='equal', extent=[idc[2]-300,idc[3]-300,idc[0]+100,idc[1]+100]) #, vmin=vmin, vmax=vmax)
                 ax.set(xlabel='Azimut(m)',ylabel='Rango(m)', title=title_name)
                 ax.grid()
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
-                plt.colorbar(im,cax=cax,label='desplazamiento(mm)',extend='both')
-                fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_complete/Images/"+direction,orientation='landscape')
+                plt.colorbar(im,cax=cax,label='desplazamiento LOS(mm)',extend='both')
+                fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_section/Images/"+direction,orientation='landscape')
 
     #t = np.arange(len(Ims)-1)+10 # Variable x, tiempo
-    time_dset = np.load("Dates_BP.npy")
+    time_dset = np.load("Dates_BP_"+str(n_im)+".npy")
     time_dset = time_dset[:-1]
     time_dset2 = np.array([datetime.datetime.strptime(idx,"%d-%m-%y %H:%M:%S") for idx in time_dset])
 
@@ -272,7 +335,7 @@ def make_interferometry(data,algorithm=None):
             plt.show()
             fig.savefig(os.getcwd()+"/Results/Desplazamientos/"+direction,orientation='landscape')
       """
-    return {'d_t':desp, 't':time_dset2}
+    return {'disp':desp, 'disp_acc':desp_acc, 'std':desv_std,'mag':mag,'t':time_dset2}
 
 def get_displacements(ds):
     """ En esta funcion se grafican las curvas de desplazamientos promedios.
@@ -281,29 +344,97 @@ def get_displacements(ds):
     t = ds['t']
     t = t[:n_im-1]
     t = mplt.dates.date2num(t)
-    d = ds['d_t']
+    d = ds['disp']
+    d_acc = ds['disp_acc']
+    d_std = ds['std']
+    mag = ds['mag']
+    
+    f = open("Log_landslide.txt","w+")
+    f.write("-----------------------------------------------------------------\n")
+    f.write("                 LANDSLIDE STATISTICS PARAMETERS\n")
+    f.write("-----------------------------------------------------------------\n")
+    f.write("Current time: "+time.strftime("%H:%M:%S - ")+time.strftime("%d/%m/%y")+"\n")
+    f.write("-----------------------------------------------------------------\n")
+    #f.write("\n")
     
     # Se grafica la curva Desplazamientos promedios vs Tiempo
     formatter = DateFormatter("%d/%m - %H:%M")
-    for i in range(len(d)):
+    for i in range(len(d_acc)):
         # Hallando el valor promedio final x zona
         mean_bp = d[i].mean()
-        print("Valor promedio BP_zona"+str(i)+": ",mean_bp)
-        print("")
-        # Graficando
-        direction = 'desplazamientosPromedios_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)+'.png'
+        mean_acc_bp = d_acc[i].mean()
+        mean_std = d_std[i].mean()
+        mean_mag = mag[i].mean()
+        f.write("Desplazamiento promedio BP_zona"+str(i)+"(mm): "+str(mean_bp)+"\n")
+        f.write("Desplazamiento acumulado promedio BP_zona"+str(i)+"(mm): "+str(mean_acc_bp)+"\n")
+        f.write("Desviacion estandar promedio BP_zona"+str(i)+"(mm): "+str(mean_std)+"\n")
+        f.write("Magnitud de la imagen promedio BP_zona"+str(i)+": "+str(mean_mag)+"\n")
+        f.write("\n")
+        
+        # Graficando los desplazamientos 
+        direction = 'Results_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)+'.png'
+        title_name = 'Statistical Results - Section '+str(i)
 
-        fig, ax= plt.subplots(figsize=(10,7))
-        ax.plot_date(t,d[i],'b',marker='',markerfacecolor='b',markeredgecolor='b',label='Back Projection')
-        ax.set(xlabel='Tiempo',ylabel='Desplazamiento(mm)',title="Desplazamientos promedios\n(Zona "+str(i)+')')
-        ax.xaxis.set_major_formatter(formatter)
-        ax.xaxis.set_tick_params(rotation=20)
+        fig, ax= plt.subplots(2,2,figsize=(11,8))
+        ax[0,0].plot_date(t,d[i],'b',marker='',markerfacecolor='b',markeredgecolor='b') #,label='Back Projection')
+        ax[0,0].set(xlabel = r"$time$",ylabel = r"$\overline{\Delta r} \ - \ LOS (mm)$",title= r"$\overline{\Delta r} \ vs \ time $") # \n(Zona "+str(i)+')')
+        ax[0,0].xaxis.set_major_formatter(formatter)
+        ax[0,0].xaxis.set_tick_params(rotation=20)
         #ax.set_xlim([R.min(),R.max()])
-        ax.set_ylim([-c*1000/(4*fc*5),c*1000/(4*fc*5)]) # En (mm)
-        ax.grid(linestyle='dashed')
-        ax.legend()
-        plt.show()
+        ax[0,0].set_ylim([-c*1000/(4*fc*2),c*1000/(4*fc*2)]) # En (mm)
+        ax[0,0].grid(linestyle='dashed')
+        #ax[0,0].legend()
+        #plt.show()
+        #fig.savefig(os.getcwd()+"/Results/Displacement_BP/"+direction1,orientation='landscape')
+
+        # Graficando los desplazamientos acumulados
+        #direction2 = 'desplazamientosPromedios_acc_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)+'.png'
+
+        #fig, ax= plt.subplots(figsize=(10,7))
+        ax[0,1].plot_date(t,d_acc[i],'b',marker='',markerfacecolor='b',markeredgecolor='b') #,label='Back Projection')
+        ax[0,1].set(xlabel = r"$time$",ylabel = r"$\overline{\Delta r_{acc}} \ - \ LOS (mm)$",title= r"$\overline{\Delta r_{acc}} \ vs \ time $") # \n(Zona "+str(i)+')')
+        ax[0,1].xaxis.set_major_formatter(formatter)
+        ax[0,1].xaxis.set_tick_params(rotation=20)
+        #ax.set_xlim([R.min(),R.max()])
+        ax[0,1].set_ylim([-c*1000*2/(4*fc),c*1000*2/(4*fc)]) # En (mm)
+        ax[0,1].grid(linestyle='dashed')
+        #ax[0,1].legend()
+        #plt.show()
+        #fig.savefig(os.getcwd()+"/Results/Displacement_BP/"+direction2,orientation='landscape')
+        
+        # Graficando la desviacion estandar
+        #direction3 = 'desviacionEstandar_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)+'.png'
+
+        #fig, ax= plt.subplots(figsize=(10,7))
+        ax[1,0].plot_date(t,d_std[i],'b',marker='',markerfacecolor='b',markeredgecolor='b')#,label='Back Projection')
+        ax[1,0].set(xlabel = r"$time$",ylabel = r"$\sigma_{\Delta r}(mm)$",title= r"$\sigma_{\Delta r} \ vs \ time $") # \n(Zona "+str(i)+')')
+        ax[1,0].xaxis.set_major_formatter(formatter)
+        ax[1,0].xaxis.set_tick_params(rotation=20)
+        #ax.set_xlim([R.min(),R.max()])
+        ax[1,0].set_ylim([0,c*1000/(4*fc)]) # En (mm)
+        ax[1,0].grid(linestyle='dashed')
+        #ax[1,0].legend()
+        #plt.show()
+
+        ax[1,1].plot_date(t,mag[i],'b',marker='',markerfacecolor='b',markeredgecolor='b')#,label='Back Projection')
+        ax[1,1].set(xlabel = r"$time$",ylabel = r"$\overline{mag}$",title= r"$\overline{mag} \ vs \ time $") # \n(Zona "+str(i)+')')
+        ax[1,1].xaxis.set_major_formatter(formatter)
+        ax[1,1].xaxis.set_tick_params(rotation=20)
+        ax[1,1].ticklabel_format(axis='y',style='sci',scilimits=(0,0))
+        ax[1,1].yaxis.major.formatter._useMathText = True
+        #ax.set_xlim([R.min(),R.max()])
+        #ax[1,1].set_ylim([0,c*1000/(4*fc)]) # En (mm)
+        ax[1,1].grid(linestyle='dashed')
+        #ax[1,1].legend()
+        
+        #fig.subplots_adjust(left=0.065, right=0.95, wspace=0.3)
+        fig.suptitle(title_name, y=0.97)
+        fig.tight_layout(w_pad=2,h_pad=2,rect=[0,0,1,0.95])
         fig.savefig(os.getcwd()+"/Results/Displacement_BP/"+direction,orientation='landscape')
+        
+        plt.close('all')
+        
+    f.close()
         
     return 'Ok'
 
@@ -349,22 +480,19 @@ def compare_displacements(ds1,ds2):
 
     return 'Ok'
 
-#def create_video():
-    
-
 def main():
     plt.close('all')
-    start_time = timeit.default_timer()
+    start_time = timeit.default_timer() 
 
     # Se calcula la data del algoritmo Back Projection
-    get_images(algorithm='BP')
+    #get_images(algorithm='BP')
 
     # Se calcula la data de algoritmo RMA
     #get_images(algorithm='RMA')
 
     # Se carga la data del algoritmo Back Projection
     #Ims1 = np.load("Set_images_BP.npy").item()
-    data1 = np.load("Parameters_BP.npy").item()
+    data1 = np.load("Parameters_BP2.npy").item()
 
     # Se carga la data de algoritmo RMA
     #Ims2 = np.load("Set_images_RMA.npy").item()
@@ -376,8 +504,12 @@ def main():
 
     # Se comaparan las curvas de desplazamientos de los 2 algoritmos
     get_displacements(disp1)
-    print("\nTiempo total: ",timeit.default_timer() - start_time,"s")
-
+    
+    h = open("Log_landslide.txt","a+")
+    h.write("-----------------------------------------------------------------\n")
+    h.write("Tiempo total de procesamiento: " + str(timeit.default_timer() - start_time) + "s \n")
+    h.close()
+    
     return 'Ok'
 
 if __name__ == '__main__':

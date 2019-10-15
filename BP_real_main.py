@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import sarPrm as sp # Library created to define sistem parameters
 import drawFigures as dF # Library created to draw FFT functions
 import timeit
+import time
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import h5py as hp
 import os
@@ -38,7 +39,7 @@ Ls,Np,Ro,theta = prm['Ls'],prm['Np'],prm['Ro'],prm['theta']
 Lx,Ly,dx,dy,yi = prm['w'],prm['h'],prm['dw'],prm['dh'],prm['hi'] # Dimensiones de la imagen
 dp2 = prm['dx']"""
 
-def get_SAR_data():
+def get_SAR_data(index):
     """ Obtiene el histórico de fase ya sea simulado o real"""
     # Cálculo de parámetros
     dp = Ls/(Np-1) # Paso del riel(m)
@@ -54,21 +55,21 @@ def get_SAR_data():
     # Cálculo de las resoluciones
     rr_r = c/(2*BW) # Resolución en rango
     rr_a = c/(2*Ls*fc) # Resolución en azimuth
-
-    #-----------------VERIFICACIÓN DE CONDICIONES------------------------
-    print("------------------------------------------------------")
-    print("--------------INFORMACIÓN IMPORTANTE------------------")
-    print("------------------------------------------------------")
-    print("- Resolución en rango(m) : ", rr_r)
-    print("- Resolución en azimuth(rad): ", rr_a)
-    print("------------------------------------------------------")
-    print("- Rango máximo permitido(m): ", R_max)
-    print("------------------------------------------------------")
-    print("______¿Se cumplen las siguientes condiciones?_________")
-    print("Rango máximo del target <= rango máximo?: ", R_max<=R_max) # Ponerle un try-except
-    print("Paso del riel <= paso máximo?: ", dp<=dp_max) # Evita el aliasing en el eje de azimuth
-    print("------------------------------------------------------")
-
+    
+    if index == 0: # If this is the first reconstructed image 
+        h = open("Log_imaging.txt","a+")
+    
+        #-----------------VERIFICACIÓN DE CONDICIONES------------------------
+        h.write("- Resolución en rango(m) : "+ str(rr_r) + "\n")
+        h.write("- Resolución en azimuth(rad): " + str(rr_a) + "\n")
+        h.write("-----------------------------------------------------------------\n")
+        h.write("- Rango máximo permitido(m): " + str(R_max) + "\n")
+        h.write("-----------------------------------------------------------------\n")
+        h.write("____________¿Se cumplen las siguientes condiciones?______________\n")
+        h.write("Rango máximo del target <= rango máximo?: " + str(R_max<=R_max) + "\n") # Ponerle un try-except
+        h.write("Paso del riel <= paso máximo?: " + str(dp<=dp_max) + "\n") # Evita el aliasing en el eje de azimuth
+        h.write("-----------------------------------------------------------------\n")
+        h.close()
     #----------------OBTENCIÓN DEL HISTÓRICO DE FASE----------------------
     Sr_f = np.array(list(dset))
 
@@ -167,9 +168,9 @@ def plot_image(data2):
     direction ='ImageBP_'+title
 
     # b) Grafica final(magnitud)
-    cmap = "plasma"
-    vmin = np.amin(20*np.log10(abs(Im)))+53
-    vmax = np.amax(20*np.log10(abs(Im)))
+    cmap = "gnuplot"
+    vmin = -65 #np.amin(20*np.log10(abs(Im)))+70
+    vmax = -50 #np.amax(20*np.log10(abs(Im)))-25
     fig, ax = plt.subplots()
     im=ax.imshow(20*np.log10(abs(Im)), cmap, origin='lower', aspect='equal', extent=[-Lx/2, Lx/2, yi, yi+Ly],vmin=vmin,vmax=vmax)
     ax.set(xlabel='Azimut(m)',ylabel='Rango(m)', title=title_name)
@@ -182,11 +183,12 @@ def plot_image(data2):
 
     return {'Im':Im, 'x_min':-Lx/2, 'x_max':Lx/2, 'y_min':yi, 'y_max':yi+Ly}
 
-def main(dset_name):
+def main(dset_name,idx): # Raw data file name, index of image to be reconstructed
+    
     plt.close('all') # Cerrar todas las figuras previas
 
     # Se declaran y cargan variables
-    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/example/" # Ruta del Raw Data
+    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/san_mateo_06-03-19_09:57:56/" # Ruta del Raw Data
     f = hp.File(dirc+dset_name,'r')
     global dset
     dset = f['sar_dataset']
@@ -201,10 +203,28 @@ def main(dset_name):
     date = prm['date'].decode('utf-8') # string data
 
     show = False
-
+    
+    if idx == 0: # If this is the first reconstructed image
+        g = open("Log_imaging.txt","w+")
+        g.write("-----------------------------------------------------------------\n")
+        g.write("                       IMAGING PARAMETERS \n")
+        g.write("-----------------------------------------------------------------\n")
+        g.write("Current time: "+time.strftime("%H:%M:%S - ")+time.strftime("%d/%m/%y")+"\n")
+        g.write("-----------------------------------------------------------------\n")
+        g.write("Central frequency: "+str(fc)+" GHz \n")
+        g.write("Bandwidth: "+str(BW)+" GHz \n")
+        g.write("Frequency points: "+str(Nf)+"\n")
+        g.write("Aperture: "+str(Ls)+" m \n")
+        g.write("Azimuth step: "+str(dp2)+" m \n")
+        g.write("Azimuth points: "+str(Np)+"\n")
+        g.write("Transmited power(approx.): 30 dBm \n")
+        g.write("Beam angle: "+str(dp2)+"° \n")
+        g.write("-----------------------------------------------------------------\n")    
+        g.close()
+    
     # Obtencion del Raw Data
     start_time = timeit.default_timer()
-    datos = get_SAR_data() # Obtiene el historico de fase
+    datos = get_SAR_data(idx) # Obtiene el historico de fase
     print("Tiempo de simulación: ",timeit.default_timer() - start_time,"s")
 
     # Procesamiento BP
@@ -221,4 +241,4 @@ def main(dset_name):
     return IF
 
 if __name__ == '__main__':
-    test = main("dset_60.hdf5")
+    test = main("dset_106.hdf5",0)
