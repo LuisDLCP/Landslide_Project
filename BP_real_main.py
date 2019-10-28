@@ -180,15 +180,16 @@ def plot_image(data2):
     plt.colorbar(im,cax=cax,label='Reflectividad(dB)',extend='both')
 
     fig.savefig(os.getcwd()+"/Results/Imaging_BP/Images/"+direction,orientation='landscape')
+    #fig.savefig(os.getcwd()+"/Results/Otros/Imaging_test/"+direction,orientation='landscape')
 
     return {'Im':Im, 'x_min':-Lx/2, 'x_max':Lx/2, 'y_min':yi, 'y_max':yi+Ly}
 
-def main(dset_name,idx): # Raw data file name, index of image to be reconstructed
+def main(dset_name,idx): # Raw data file name, index of image to be reconstructed('0' default)
     
     plt.close('all') # Cerrar todas las figuras previas
 
     # Se declaran y cargan variables
-    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/san_mateo_06-03-19_09:57:56/" # Ruta del Raw Data
+    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
     f = hp.File(dirc+dset_name,'r')
     global dset
     dset = f['sar_dataset']
@@ -241,4 +242,9 @@ def main(dset_name,idx): # Raw data file name, index of image to be reconstructe
     return IF
 
 if __name__ == '__main__':
-    test = main("dset_106.hdf5",0)
+    
+    test  = main("dset_2443.hdf5",0)
+    """
+    for i in range(70):
+        test = main("dset_"+str((i+1)*100)+".hdf5",0)
+    """

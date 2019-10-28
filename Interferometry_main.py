@@ -29,8 +29,8 @@ import os
 os.chdir(os.path.dirname(__file__)) # get the current path
 
 show = True # esta variable muestra ciertas figuras 
-n_im = 2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
-i_o = 100 #10 # Numero de imagen inicial(10)
+n_im = 5 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
+i_o = 10 #100 #10 # Numero de imagen inicial(10)
 
 def get_images(algorithm=None):
     """ Esta funcion se encarga de graficar las imagenes SAR usando un algoritmo dado por 
@@ -68,7 +68,7 @@ def get_images(algorithm=None):
             #Ims[i] = data['Im']
             dates.append(data['date'])
             np.save(os.getcwd()+"/Results/Output_BP/Im_"+str(i)+".npy",data['Im']) # Imagenes de todo el dataset
-        np.save("Parameters_BP2",data) # Parametros geometricos como dimensiones y grilla de la imagen
+        np.save("Parameters_BP_"+str(n_im),data) # Parametros geometricos como dimensiones y grilla de la imagen
         np.save("Dates_BP_"+str(n_im),np.array(dates)) # Fechas de las iamgenes tomadas de todo el dset
 
     return 'Ok'
@@ -245,7 +245,8 @@ def make_interferometry(data,algorithm=None):
     desp = np.zeros((len(zone_indexes),n_im-1)) # Variable y: desplazamiento
     desp_acc = np.zeros((len(zone_indexes),n_im-1)) # Variable y: desplazamiento acumulado
     desv_std = np.zeros((len(zone_indexes),n_im-1)) # Standar Deviation
-    mag = np.zeros((len(zone_indexes),n_im-1)) # Image magnitud
+    #mag = np.zeros((len(zone_indexes),n_im-1)) # Image magnitud
+    snr = np.zeros((len(zone_indexes),n_im-1)) # SNR
     
     for z in range(len(zone_indexes)): # Hallando los desplazamientos promedios acumulados por zona
         idc = zone_indexes[z]
@@ -253,7 +254,7 @@ def make_interferometry(data,algorithm=None):
             i1 = i+i_o # 10 es el valor inicial de las imagenes
             Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
             Im1 = calibration(M,Im1)
-            
+                        
             Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
             Im2 = calibration(M,Im2)
             
@@ -266,18 +267,27 @@ def make_interferometry(data,algorithm=None):
             # -----   end --------
             d_i[mask] = np.nan
             d_i = d_i[idc[0]:idc[1],idc[2]:idc[3]]
-
+            
+            factor = 20*np.log10(np.mean(abs(Im1[550:650,0:200]))) # mean value of error 
+            aux_snr = 20*np.log10(abs(Im1)) # snr of the image
+            aux_snr = aux_snr - factor
+            
+            aux_snr[mask] = np.nan
+            aux_snr = aux_snr[idc[0]:idc[1],idc[2]:idc[3]]
+            
             if i==0: 
                 desp[z,i] = np.nanmean(d_i) # mean ignoring nan values
                 desp_acc[z,i] = np.nanmean(d_i)
                 desv_std[z,i] = np.nanstd(d_i)
-                mag[z,i] = np.mean(abs(Im1))
+                #mag[z,i] = np.mean(abs(Im1))
+                snr[z,i] = np.nanmean(aux_snr)
             else: 
                 desp[z,i] = np.nanmean(d_i)
                 desp_acc[z,i] = np.nanmean(d_i)+desp_acc[z,i-1]
                 desv_std[z,i] = np.nanstd(d_i)
-                mag[z,i] = np.mean(abs(Im1))
-               
+                #mag[z,i] = np.mean(abs(Im1))
+                snr[z,i] = np.nanmean(aux_snr)
+                
             # Graficando la zona z-esima
             if show and i == 0: #
                 if algorithm == "BP":
@@ -335,7 +345,7 @@ def make_interferometry(data,algorithm=None):
             plt.show()
             fig.savefig(os.getcwd()+"/Results/Desplazamientos/"+direction,orientation='landscape')
       """
-    return {'disp':desp, 'disp_acc':desp_acc, 'std':desv_std,'mag':mag,'t':time_dset2}
+    return {'disp':desp, 'disp_acc':desp_acc, 'std':desv_std,'snr':snr,'t':time_dset2}
 
 def get_displacements(ds):
     """ En esta funcion se grafican las curvas de desplazamientos promedios.
@@ -347,7 +357,7 @@ def get_displacements(ds):
     d = ds['disp']
     d_acc = ds['disp_acc']
     d_std = ds['std']
-    mag = ds['mag']
+    snr = ds['snr']
     
     f = open("Log_landslide.txt","w+")
     f.write("-----------------------------------------------------------------\n")
@@ -364,11 +374,11 @@ def get_displacements(ds):
         mean_bp = d[i].mean()
         mean_acc_bp = d_acc[i].mean()
         mean_std = d_std[i].mean()
-        mean_mag = mag[i].mean()
+        mean_snr = snr[i].mean()
         f.write("Desplazamiento promedio BP_zona"+str(i)+"(mm): "+str(mean_bp)+"\n")
         f.write("Desplazamiento acumulado promedio BP_zona"+str(i)+"(mm): "+str(mean_acc_bp)+"\n")
         f.write("Desviacion estandar promedio BP_zona"+str(i)+"(mm): "+str(mean_std)+"\n")
-        f.write("Magnitud de la imagen promedio BP_zona"+str(i)+": "+str(mean_mag)+"\n")
+        f.write("Magnitud de la imagen promedio BP_zona"+str(i)+": "+str(mean_snr)+"\n")
         f.write("\n")
         
         # Graficando los desplazamientos 
@@ -415,9 +425,10 @@ def get_displacements(ds):
         ax[1,0].grid(linestyle='dashed')
         #ax[1,0].legend()
         #plt.show()
-
-        ax[1,1].plot_date(t,mag[i],'b',marker='',markerfacecolor='b',markeredgecolor='b')#,label='Back Projection')
-        ax[1,1].set(xlabel = r"$time$",ylabel = r"$\overline{mag}$",title= r"$\overline{mag} \ vs \ time $") # \n(Zona "+str(i)+')')
+        
+        # Graficando el SNR
+        ax[1,1].plot_date(t,snr[i],'b',marker='',markerfacecolor='b',markeredgecolor='b')#,label='Back Projection')
+        ax[1,1].set(xlabel = r"$time$",ylabel = r"$\overline{snr}(dB)$",title= r"$\overline{snr} \ vs \ time $") # \n(Zona "+str(i)+')')
         ax[1,1].xaxis.set_major_formatter(formatter)
         ax[1,1].xaxis.set_tick_params(rotation=20)
         ax[1,1].ticklabel_format(axis='y',style='sci',scilimits=(0,0))
@@ -484,32 +495,23 @@ def main():
     plt.close('all')
     start_time = timeit.default_timer() 
 
-    # Se calcula la data del algoritmo Back Projection
+    # Se hallan las imagenes SAR
     #get_images(algorithm='BP')
-
-    # Se calcula la data de algoritmo RMA
-    #get_images(algorithm='RMA')
-
-    # Se carga la data del algoritmo Back Projection
-    #Ims1 = np.load("Set_images_BP.npy").item()
-    data1 = np.load("Parameters_BP2.npy").item()
-
-    # Se carga la data de algoritmo RMA
-    #Ims2 = np.load("Set_images_RMA.npy").item()
-    #data2 = np.load("Parameters_RMA.npy").item()
+    
+    # Se obtienen los parametros del Imaging-SAR
+    data1 = np.load("Parameters_BP_"+str(n_im)+".npy").item()
 
     # Se calculan los interferogramas
     disp1 = make_interferometry(data1,algorithm='BP')
-    #disp2 = make_interferometry(data2,algorithm='RMA')
-
-    # Se comaparan las curvas de desplazamientos de los 2 algoritmos
+    
+    # Se obtienen las curvas de analisis estadistico
     get_displacements(disp1)
     
     h = open("Log_landslide.txt","a+")
     h.write("-----------------------------------------------------------------\n")
     h.write("Tiempo total de procesamiento: " + str(timeit.default_timer() - start_time) + "s \n")
     h.close()
-    
+        
     return 'Ok'
 
 if __name__ == '__main__':

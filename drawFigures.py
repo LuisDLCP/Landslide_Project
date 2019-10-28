@@ -15,7 +15,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 # UNA SOLA GRAFICA DENTRO DE UNA SOLA VENTANA(Simple unit plot)
-def simple_Uplot(x,y,title=None,axis_X=None,axis_Y=None):
+def simple_Uplot(x,y,title=None,axis_X=None,axis_Y=None,direction=None):
     """
     Return a single image within a single window.
 
@@ -44,6 +44,7 @@ def simple_Uplot(x,y,title=None,axis_X=None,axis_Y=None):
     plt.title(title)
     plt.grid()
     plt.show()
+    plt.savefig(direction)
 
     return "Done!"
 
