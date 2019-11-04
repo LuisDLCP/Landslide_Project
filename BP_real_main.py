@@ -39,7 +39,7 @@ Ls,Np,Ro,theta = prm['Ls'],prm['Np'],prm['Ro'],prm['theta']
 Lx,Ly,dx,dy,yi = prm['w'],prm['h'],prm['dw'],prm['dh'],prm['hi'] # Dimensiones de la imagen
 dp2 = prm['dx']"""
 
-def get_SAR_data(index):
+def get_SAR_data(index,directory=None):
     """ Obtiene el histórico de fase ya sea simulado o real"""
     # Cálculo de parámetros
     dp = Ls/(Np-1) # Paso del riel(m)
@@ -57,7 +57,7 @@ def get_SAR_data(index):
     rr_a = c/(2*Ls*fc) # Resolución en azimuth
     
     if index == 0: # If this is the first reconstructed image 
-        h = open("Log_imaging.txt","a+")
+        h = open(directory+"/Log_imaging.txt","a+")
     
         #-----------------VERIFICACIÓN DE CONDICIONES------------------------
         h.write("- Resolución en rango(m) : "+ str(rr_r) + "\n")
@@ -158,7 +158,7 @@ def FDBP_Algorithm(data1):
 
     return {'In':In}
 
-def plot_image(data2):
+def plot_image(data2,directory=None):
     """ Grafica la magnitud de la imagen"""
     # a) Definicion y lectura de parametros
     Im = data2['In'].copy()
@@ -178,18 +178,22 @@ def plot_image(data2):
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
     plt.colorbar(im,cax=cax,label='Reflectividad(dB)',extend='both')
-
-    fig.savefig(os.getcwd()+"/Results/Imaging_BP/Images/"+direction,orientation='landscape')
+    
+    directory_img = directory + "/SAR_Images/Images/"
+    if not os.path.exists(directory_img):
+        os.makedirs(directory_img)
+    
+    fig.savefig(directory_img+direction,orientation='landscape')
     #fig.savefig(os.getcwd()+"/Results/Otros/Imaging_test/"+direction,orientation='landscape')
 
     return {'Im':Im, 'x_min':-Lx/2, 'x_max':Lx/2, 'y_min':yi, 'y_max':yi+Ly}
 
-def main(dset_name,idx): # Raw data file name, index of image to be reconstructed('0' default)
+def main(dset_name,idx,directory=None): # Raw data file name, index of image to be reconstructed('0' default), directory where log imaging is saved 
     
     plt.close('all') # Cerrar todas las figuras previas
 
     # Se declaran y cargan variables
-    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
+    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/roj_LDCP1_31-07-19_16:04:08/" #roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
     f = hp.File(dirc+dset_name,'r')
     global dset
     dset = f['sar_dataset']
@@ -206,11 +210,14 @@ def main(dset_name,idx): # Raw data file name, index of image to be reconstructe
     show = False
     
     if idx == 0: # If this is the first reconstructed image
-        g = open("Log_imaging.txt","w+")
+        directory_log = directory+"/Output_Imaging"
+        
+        g = open(directory_log + "/Log_imaging.txt","w+")
         g.write("-----------------------------------------------------------------\n")
         g.write("                       IMAGING PARAMETERS \n")
         g.write("-----------------------------------------------------------------\n")
         g.write("Current time: "+time.strftime("%H:%M:%S - ")+time.strftime("%d/%m/%y")+"\n")
+        g.write("Algorithm: FDBP\n")
         g.write("-----------------------------------------------------------------\n")
         g.write("Central frequency: "+str(fc)+" GHz \n")
         g.write("Bandwidth: "+str(BW)+" GHz \n")
@@ -223,9 +230,14 @@ def main(dset_name,idx): # Raw data file name, index of image to be reconstructe
         g.write("-----------------------------------------------------------------\n")    
         g.close()
     
+        g = open(directory + "/dir_rawdata.txt","w+")
+        g.write("RAW DATA DIRECTORY:\n")
+        g.write("\n"+dirc)
+        g.close()
+    
     # Obtencion del Raw Data
     start_time = timeit.default_timer()
-    datos = get_SAR_data(idx) # Obtiene el historico de fase
+    datos = get_SAR_data(idx,directory=directory+"/Output_Imaging") # Obtiene el historico de fase
     print("Tiempo de simulación: ",timeit.default_timer() - start_time,"s")
 
     # Procesamiento BP
@@ -236,14 +248,14 @@ def main(dset_name,idx): # Raw data file name, index of image to be reconstructe
     # Graficas
     d_p['file_name'] = dset_name
 
-    IF = plot_image(d_p)
+    IF = plot_image(d_p,directory=directory)
     IF['date'] = date # Se anexa al diccionario
 
     return IF
 
 if __name__ == '__main__':
     
-    test  = main("dset_2443.hdf5",0)
+    test  = main("dset_495.hdf5",0)
     """
     for i in range(70):
         test = main("dset_"+str((i+1)*100)+".hdf5",0)

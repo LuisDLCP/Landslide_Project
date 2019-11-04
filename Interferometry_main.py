@@ -29,8 +29,20 @@ import os
 os.chdir(os.path.dirname(__file__)) # get the current path
 
 show = True # esta variable muestra ciertas figuras 
-n_im = 5 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
+n_im = 2 #1170 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
 i_o = 10 #100 #10 # Numero de imagen inicial(10)
+
+directory0 = os.getcwd()+"/Results/RawData_"+str(n_im) # root directory to save all the results
+if not os.path.exists(directory0):
+    os.makedirs(directory0)
+
+directory1 = directory0+"/Output_Imaging" # directory to save data, Dates & Parameters
+if not os.path.exists(directory1):
+    os.makedirs(directory1)
+            
+directory2 = directory1+"/data" # directory to save data
+if not os.path.exists(directory2):
+    os.makedirs(directory2)
 
 def get_images(algorithm=None):
     """ Esta funcion se encarga de graficar las imagenes SAR usando un algoritmo dado por 
@@ -59,17 +71,23 @@ def get_images(algorithm=None):
 
     elif algorithm == "BP":
         #Ims = {}
-        dates = []
+        dates = []            
         #Ims = np.load("Set_images_BP.npy").item()
         #dates = np.load("Dates_BP.npy")
         for i in range(n_im): #(4991):
             i += i_o # Empieza en la posicion 10
-            data = BP.main("dset_"+str(i)+".hdf5",i-i_o) 
+            data = BP.main("dset_"+str(i)+".hdf5",i-i_o,directory=directory0) 
             #Ims[i] = data['Im']
             dates.append(data['date'])
-            np.save(os.getcwd()+"/Results/Output_BP/Im_"+str(i)+".npy",data['Im']) # Imagenes de todo el dataset
-        np.save("Parameters_BP_"+str(n_im),data) # Parametros geometricos como dimensiones y grilla de la imagen
-        np.save("Dates_BP_"+str(n_im),np.array(dates)) # Fechas de las iamgenes tomadas de todo el dset
+            np.save(directory2 + "/Im_"+str(i)+".npy",data['Im']) # Imagenes de todo el dataset
+        np.save(directory1 + "/Parameters",data) # Parametros geometricos como dimensiones y grilla de la imagen
+        np.save(directory1 + "/Dates",np.array(dates)) # Fechas de las iamgenes tomadas de todo el dset
+        
+        # Saving used raw data dsets
+        g = open(directory0 + "/dir_rawdata.txt","a+")
+        g.write("\n\nDATA SETs:\n")
+        g.write("\ndset_"+str(i_o)+" - dset_"+str(i_o+n_im-1))
+        g.close()
 
     return 'Ok'
 
@@ -113,16 +131,16 @@ def make_interferometry(data,algorithm=None):
            en una matriz.
     """
     # Obteniendo el mapa de coherencia
-    Im = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i_o)+".npy") # Se carga la imagen 10
+    Im = np.load(directory2+"/Im_"+str(i_o)+".npy") # Se carga la imagen 10
     f1 = np.zeros((len(Im),len(Im.T)),dtype=complex)
     f2 = np.zeros((len(Im),len(Im.T)),dtype=complex)
     coh = np.zeros((len(Im),len(Im.T)),dtype=complex)
 
     for i in range(n_im):
         i += i_o # Valor inicial
-        Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i)+".npy")
+        Im1 = np.load(directory2+"/Im_"+str(i)+".npy")
         if i<n_im+i_o-1:
-            Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i+1)+".npy")
+            Im2 = np.load(directory2+"/Im_"+str(i+1)+".npy")
             f1 += Im1*Im2.conjugate()
         f2 += abs(Im1)**2 #np.sqrt((abs(Im1)**2)*(abs(Im2)**2))
 
@@ -149,7 +167,12 @@ def make_interferometry(data,algorithm=None):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
         plt.colorbar(im,cax=cax,label='',extend='both')
-        fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Coherence_maps/"+direction, orientation='landscape')
+        
+        directory_coh = directory0 + "/Interferograms/Coherence_maps/"
+        if not os.path.exists(directory_coh):
+            os.makedirs(directory_coh)
+        
+        fig.savefig(directory_coh+direction, orientation='landscape')
 
     # Sacando una mascara de [0.7,1] para la coherencia
     mask = coh<=0.7
@@ -175,7 +198,7 @@ def make_interferometry(data,algorithm=None):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
         plt.colorbar(im,cax=cax,label='',extend='both')
-        fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Coherence_maps/"+direction, orientation='landscape')
+        fig.savefig(directory_coh+direction, orientation='landscape')
 
     # Hallando el factor de calibracion
         # 1) Create a mask with the highest value of coherence in 1 
@@ -198,10 +221,10 @@ def make_interferometry(data,algorithm=None):
         for i in range(n_im-1):
             # Hallando el interferograma 'i'-esimo
             i1 = i+i_o
-            Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
+            Im1 = np.load(directory2+"/Im_"+str(i1)+".npy")
             Im1 = calibration(M,Im1)
             
-            Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
+            Im2 = np.load(directory2+"/Im_"+str(i1+1)+".npy")
             Im2 = calibration(M,Im2)
             
             disp = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc) # Distancias en mm
@@ -228,7 +251,12 @@ def make_interferometry(data,algorithm=None):
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
             plt.colorbar(im,cax=cax,label='desplazamiento LOS(mm)',extend='both')
-            fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_complete/Images/"+direction,orientation='landscape')
+            
+            directory_itc = directory0 + "/Interferograms/Interferograms_complete/Images/"
+            if not os.path.exists(directory_itc):
+                os.makedirs(directory_itc)
+            
+            fig.savefig(directory_itc+direction,orientation='landscape')
             plt.close()
 
     # Hallando la curva de distancias vs tiempo
@@ -252,10 +280,10 @@ def make_interferometry(data,algorithm=None):
         idc = zone_indexes[z]
         for i in range(n_im-1):
             i1 = i+i_o # 10 es el valor inicial de las imagenes
-            Im1 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1)+".npy")
+            Im1 = np.load(directory2+"/Im_"+str(i1)+".npy")
             Im1 = calibration(M,Im1)
                         
-            Im2 = np.load(os.getcwd()+"/Results/Output_"+algorithm+"/Im_"+str(i1+1)+".npy")
+            Im2 = np.load(directory2+"/Im_"+str(i1+1)+".npy")
             Im2 = calibration(M,Im2)
             
             d_i = np.angle(Im1*Im2.conjugate())*1000*c/(4*np.pi*fc) # dist(mm)
@@ -310,10 +338,15 @@ def make_interferometry(data,algorithm=None):
                 divider = make_axes_locatable(ax)
                 cax = divider.append_axes("right", size="5%", pad=0.1) # pad es el espaciado con la grafica principal
                 plt.colorbar(im,cax=cax,label='desplazamiento LOS(mm)',extend='both')
-                fig.savefig(os.getcwd()+"/Results/Interferograms_BP/Interferograms_section/Images/"+direction,orientation='landscape')
+                
+                directory_its = directory0 + "/Interferograms/Interferograms_section/Images/"
+                if not os.path.exists(directory_its):
+                    os.makedirs(directory_its)
+            
+                fig.savefig(directory_its+direction,orientation='landscape')
 
     #t = np.arange(len(Ims)-1)+10 # Variable x, tiempo
-    time_dset = np.load("Dates_BP_"+str(n_im)+".npy")
+    time_dset = np.load(directory1 + "/Dates.npy")
     time_dset = time_dset[:-1]
     time_dset2 = np.array([datetime.datetime.strptime(idx,"%d-%m-%y %H:%M:%S") for idx in time_dset])
 
@@ -359,7 +392,11 @@ def get_displacements(ds):
     d_std = ds['std']
     snr = ds['snr']
     
-    f = open("Log_landslide.txt","w+")
+    directory_stat = directory0 + "/Statistical_graphs/"
+    if not os.path.exists(directory_stat):
+        os.makedirs(directory_stat)
+    
+    f = open(directory_stat+"Log_statistic.txt","w+")
     f.write("-----------------------------------------------------------------\n")
     f.write("                 LANDSLIDE STATISTICS PARAMETERS\n")
     f.write("-----------------------------------------------------------------\n")
@@ -441,7 +478,8 @@ def get_displacements(ds):
         #fig.subplots_adjust(left=0.065, right=0.95, wspace=0.3)
         fig.suptitle(title_name, y=0.97)
         fig.tight_layout(w_pad=2,h_pad=2,rect=[0,0,1,0.95])
-        fig.savefig(os.getcwd()+"/Results/Displacement_BP/"+direction,orientation='landscape')
+            
+        fig.savefig(directory_stat+direction,orientation='landscape')
         
         plt.close('all')
         
@@ -496,10 +534,10 @@ def main():
     start_time = timeit.default_timer() 
 
     # Se hallan las imagenes SAR
-    #get_images(algorithm='BP')
+    get_images(algorithm='BP')
     
     # Se obtienen los parametros del Imaging-SAR
-    data1 = np.load("Parameters_BP_"+str(n_im)+".npy").item()
+    data1 = np.load(directory1+"/Parameters.npy").item()
 
     # Se calculan los interferogramas
     disp1 = make_interferometry(data1,algorithm='BP')
@@ -507,9 +545,9 @@ def main():
     # Se obtienen las curvas de analisis estadistico
     get_displacements(disp1)
     
-    h = open("Log_landslide.txt","a+")
+    h = open(directory0 + "/Statistical_graphs/Log_statistic.txt","a+")
     h.write("-----------------------------------------------------------------\n")
-    h.write("Tiempo total de procesamiento: " + str(timeit.default_timer() - start_time) + "s \n")
+    h.write("Tiempo total de procesamiento(s): " + str(timeit.default_timer() - start_time))
     h.close()
         
     return 'Ok'

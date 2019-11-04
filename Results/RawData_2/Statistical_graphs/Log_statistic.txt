@@ -1,0 +1,42 @@
+-----------------------------------------------------------------
+                 LANDSLIDE STATISTICS PARAMETERS
+-----------------------------------------------------------------
+Current time: 12:30:05 - 04/11/19
+-----------------------------------------------------------------
+Desplazamiento promedio BP_zona0(mm): -0.271858338142129
+Desplazamiento acumulado promedio BP_zona0(mm): -0.271858338142129
+Desviacion estandar promedio BP_zona0(mm): 2.5881823271447284
+Magnitud de la imagen promedio BP_zona0: 1.7711066777181717
+
+Desplazamiento promedio BP_zona1(mm): -0.41909958799762315
+Desplazamiento acumulado promedio BP_zona1(mm): -0.41909958799762315
+Desviacion estandar promedio BP_zona1(mm): 2.382450485554101
+Magnitud de la imagen promedio BP_zona1: 3.363888686379486
+
+Desplazamiento promedio BP_zona2(mm): -0.4274725736579272
+Desplazamiento acumulado promedio BP_zona2(mm): -0.4274725736579272
+Desviacion estandar promedio BP_zona2(mm): 2.443366414351038
+Magnitud de la imagen promedio BP_zona2: 2.859578169792474
+
+Desplazamiento promedio BP_zona3(mm): -0.5043143577990594
+Desplazamiento acumulado promedio BP_zona3(mm): -0.5043143577990594
+Desviacion estandar promedio BP_zona3(mm): 2.181806519558148
+Magnitud de la imagen promedio BP_zona3: 5.054945918736684
+
+Desplazamiento promedio BP_zona4(mm): -0.6990481779526345
+Desplazamiento acumulado promedio BP_zona4(mm): -0.6990481779526345
+Desviacion estandar promedio BP_zona4(mm): 1.798114658541978
+Magnitud de la imagen promedio BP_zona4: 6.585201299836045
+
+Desplazamiento promedio BP_zona5(mm): -0.1871570764442905
+Desplazamiento acumulado promedio BP_zona5(mm): -0.1871570764442905
+Desviacion estandar promedio BP_zona5(mm): 2.7663777980718405
+Magnitud de la imagen promedio BP_zona5: 0.3511153577974854
+
+Desplazamiento promedio BP_zona6(mm): -0.34839324703684144
+Desplazamiento acumulado promedio BP_zona6(mm): -0.34839324703684144
+Desviacion estandar promedio BP_zona6(mm): 2.455597656501496
+Magnitud de la imagen promedio BP_zona6: 1.6874729057393876
+
+-----------------------------------------------------------------
+Tiempo total de procesamiento(s): 39.868079251027666
