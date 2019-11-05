@@ -226,7 +226,7 @@ def main(dset_name,idx,directory=None): # Raw data file name, index of image to 
         g.write("Azimuth step: "+str(dp2)+" m \n")
         g.write("Azimuth points: "+str(Np)+"\n")
         g.write("Transmited power(approx.): 30 dBm \n")
-        g.write("Beam angle: "+str(dp2)+"° \n")
+        g.write("Beam angle: "+str(theta)+"° \n")
         g.write("-----------------------------------------------------------------\n")    
         g.close()
     

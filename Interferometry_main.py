@@ -29,7 +29,7 @@ import os
 os.chdir(os.path.dirname(__file__)) # get the current path
 
 show = True # esta variable muestra ciertas figuras 
-n_im = 2 #1170 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
+n_im = 1170 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
 i_o = 10 #100 #10 # Numero de imagen inicial(10)
 
 directory0 = os.getcwd()+"/Results/RawData_"+str(n_im) # root directory to save all the results
@@ -415,11 +415,11 @@ def get_displacements(ds):
         f.write("Desplazamiento promedio BP_zona"+str(i)+"(mm): "+str(mean_bp)+"\n")
         f.write("Desplazamiento acumulado promedio BP_zona"+str(i)+"(mm): "+str(mean_acc_bp)+"\n")
         f.write("Desviacion estandar promedio BP_zona"+str(i)+"(mm): "+str(mean_std)+"\n")
-        f.write("Magnitud de la imagen promedio BP_zona"+str(i)+": "+str(mean_snr)+"\n")
+        f.write("SNR promedio BP_zona"+str(i)+": "+str(mean_snr)+"\n")
         f.write("\n")
         
         # Graficando los desplazamientos 
-        direction = 'Results_dset'+str(i_o)+'-'+str(i_o+n_im-1)+'_zona'+str(i)+'.png'
+        direction = 'Stat_graphs_zone'+str(i)+'.png'
         title_name = 'Statistical Results - Section '+str(i)
 
         fig, ax= plt.subplots(2,2,figsize=(11,8))
