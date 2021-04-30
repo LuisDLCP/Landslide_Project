@@ -11,9 +11,9 @@ HOW DOES IT WORK?
 Main file: 
 	"Interferometria_main.py"
 
-Complementary scripts:
+Dependencies:
 	"BP_real_main.py": The FDBP Algorithm is implemented here.
-	"RMA_real_main.py": The RMA Algorithm is implemented here
+	"RMA_real_main.py" (optional): The RMA Algorithm is implemented here
 	"sarPrm.py": All the parameters(electrical, mechanical, 		
 	           geometrical) are defined here.
 	"drawFigures.py": Useful drawing function are found here.

@@ -1,0 +1,33 @@
+Pasos para obtener los mapas y gráficos de deslizamientos
+
+1) Open "Interferometry_main.py"
+   This file has the following parts:
+   a) Get SAR Images: get_images()
+   b) Load Imaging SAR parameters: np.load()
+   c) Get interferograms: make_interferometry()
+   d) Get displacement vs time graphics: get_displacements() 
+
+2) There are many ways to launch the program depending on the initial data you have
+   a) If you have Phase History or Raw Data:
+      -> Execute all the functions, since "get_images()" function.
+      -> Phase History is saved on a diferent folder called "Data_Set", each file is a "*.hdf5" file.
+	 You can change the file path in get_images() function.
+          
+   b) If you have Imaging Data(after SAR-Imaging proccessing)
+      -> Ignore the first function: get_images(), and execute the rest of the functions, since np.load()
+      -> Imaging data has to be saved in Output_Imaging folder
+
+3) A special folder is created to show all the results, its called RawData_n, and it contains the following folders:
+   a) Output_Imaging: Imaging data is saved here
+   b) SAR_Images: SAR Images are saved here
+   c) Interferograms: Interferograms are save here 
+   d) Statistical_graphs: Displacement vs time graphics are saved here
+
+----------------------------------------------------------------------------------------------------------------------
+INPUT DATA 
+----------------
+1) dir_input_files: It's Raw Data directory. Change it in the header of script "Interferometry_main.py"   
+
+
+
+	

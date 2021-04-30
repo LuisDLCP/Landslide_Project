@@ -63,10 +63,10 @@ def get_SAR_data(index,directory=None):
         h.write("- Resolución en rango(m) : "+ str(rr_r) + "\n")
         h.write("- Resolución en azimuth(rad): " + str(rr_a) + "\n")
         h.write("-----------------------------------------------------------------\n")
-        h.write("- Rango máximo permitido(m): " + str(R_max) + "\n")
+        h.write("- Unambibous range(m): " + str(R_max) + "\n") # Rango maximo de la teoria de PDS
         h.write("-----------------------------------------------------------------\n")
         h.write("____________¿Se cumplen las siguientes condiciones?______________\n")
-        h.write("Rango máximo del target <= rango máximo?: " + str(R_max<=R_max) + "\n") # Ponerle un try-except
+        h.write("Rango máximo del target <= Unambibous range?: " + str(R_max<=R_max) + "\n") # Ponerle un try-except
         h.write("Paso del riel <= paso máximo?: " + str(dp<=dp_max) + "\n") # Evita el aliasing en el eje de azimuth
         h.write("-----------------------------------------------------------------\n")
         h.close()
@@ -188,13 +188,15 @@ def plot_image(data2,directory=None):
 
     return {'Im':Im, 'x_min':-Lx/2, 'x_max':Lx/2, 'y_min':yi, 'y_max':yi+Ly}
 
-def main(dset_name,idx,directory=None): # Raw data file name, index of image to be reconstructed('0' default), directory where log imaging is saved 
+def main(dset_name,idx,dir_input = None, directory=None): # Raw data file name, index of image to be reconstructed('0' default), input directory, directory where log imaging is saved 
     
     plt.close('all') # Cerrar todas las figuras previas
 
     # Se declaran y cargan variables
-    dirc = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/roj_LDCP1_31-07-19_16:04:08/" #roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
-    f = hp.File(dirc+dset_name,'r')
+    #dir_input = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/Data_set/roj_LDCP1_31-07-19_16:04:08/" #roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
+    #dir_input = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo/Software/Procesamiento/Data_set/test/" #roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
+    #dir_input = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/Data_set/test/" #roj_LDCP1_31-07-19_16:04:08/"#test/" #roj_LDCP1_31-07-19_16:04:08/" #ROJ-October_30-09-19_11:52:20/" #san_mateo_06-03-19_09:57:56/ # Ruta del Raw Data "/home/soporte/Desktop/"
+    f = hp.File(dir_input+dset_name,'r')
     global dset
     dset = f['sar_dataset']
     prm = sp.get_parameters2(dset)
@@ -232,7 +234,7 @@ def main(dset_name,idx,directory=None): # Raw data file name, index of image to 
     
         g = open(directory + "/dir_rawdata.txt","w+")
         g.write("RAW DATA DIRECTORY:\n")
-        g.write("\n"+dirc)
+        g.write("\n"+dir_input)
         g.close()
     
     # Obtencion del Raw Data
@@ -255,7 +257,7 @@ def main(dset_name,idx,directory=None): # Raw data file name, index of image to 
 
 if __name__ == '__main__':
     
-    test  = main("dset_495.hdf5",0)
+    test  = main("dset_313.hdf5",0)
     """
     for i in range(70):
         test = main("dset_"+str((i+1)*100)+".hdf5",0)

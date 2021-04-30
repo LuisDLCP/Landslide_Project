@@ -1,3 +1,7 @@
+# remove this folders
+Results/
+
+# remove this files 
 *.png
 *.gif
 *.hdf5

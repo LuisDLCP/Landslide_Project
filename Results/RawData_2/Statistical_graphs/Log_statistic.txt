@@ -1,42 +1,42 @@
 -----------------------------------------------------------------
                  LANDSLIDE STATISTICS PARAMETERS
 -----------------------------------------------------------------
-Current time: 12:30:05 - 04/11/19
+Current time: 14:08:07 - 28/04/21
 -----------------------------------------------------------------
-Desplazamiento promedio BP_zona0(mm): -0.271858338142129
-Desplazamiento acumulado promedio BP_zona0(mm): -0.271858338142129
-Desviacion estandar promedio BP_zona0(mm): 2.5881823271447284
-Magnitud de la imagen promedio BP_zona0: 1.7711066777181717
+Desplazamiento promedio BP_zona0(mm): 0.2875375072034958
+Desplazamiento acumulado promedio BP_zona0(mm): 0.2875375072034958
+Desviacion estandar promedio BP_zona0(mm): 2.675562110609964
+SNR promedio BP_zona0: 4.054138256192067
 
-Desplazamiento promedio BP_zona1(mm): -0.41909958799762315
-Desplazamiento acumulado promedio BP_zona1(mm): -0.41909958799762315
-Desviacion estandar promedio BP_zona1(mm): 2.382450485554101
-Magnitud de la imagen promedio BP_zona1: 3.363888686379486
+Desplazamiento promedio BP_zona1(mm): 0.5016811852549966
+Desplazamiento acumulado promedio BP_zona1(mm): 0.5016811852549966
+Desviacion estandar promedio BP_zona1(mm): 2.5331013934695132
+SNR promedio BP_zona1: 7.108355562786648
 
-Desplazamiento promedio BP_zona2(mm): -0.4274725736579272
-Desplazamiento acumulado promedio BP_zona2(mm): -0.4274725736579272
-Desviacion estandar promedio BP_zona2(mm): 2.443366414351038
-Magnitud de la imagen promedio BP_zona2: 2.859578169792474
+Desplazamiento promedio BP_zona2(mm): 0.3922690246963309
+Desplazamiento acumulado promedio BP_zona2(mm): 0.3922690246963309
+Desviacion estandar promedio BP_zona2(mm): 2.5882400985591736
+SNR promedio BP_zona2: 6.5386419370023185
 
-Desplazamiento promedio BP_zona3(mm): -0.5043143577990594
-Desplazamiento acumulado promedio BP_zona3(mm): -0.5043143577990594
-Desviacion estandar promedio BP_zona3(mm): 2.181806519558148
-Magnitud de la imagen promedio BP_zona3: 5.054945918736684
+Desplazamiento promedio BP_zona3(mm): 0.5844958374130014
+Desplazamiento acumulado promedio BP_zona3(mm): 0.5844958374130014
+Desviacion estandar promedio BP_zona3(mm): 2.348695125241902
+SNR promedio BP_zona3: 7.725908010799682
 
-Desplazamiento promedio BP_zona4(mm): -0.6990481779526345
-Desplazamiento acumulado promedio BP_zona4(mm): -0.6990481779526345
-Desviacion estandar promedio BP_zona4(mm): 1.798114658541978
-Magnitud de la imagen promedio BP_zona4: 6.585201299836045
+Desplazamiento promedio BP_zona4(mm): 0.7763643611400527
+Desplazamiento acumulado promedio BP_zona4(mm): 0.7763643611400527
+Desviacion estandar promedio BP_zona4(mm): 2.22838605126189
+SNR promedio BP_zona4: 9.514426051658912
 
-Desplazamiento promedio BP_zona5(mm): -0.1871570764442905
-Desplazamiento acumulado promedio BP_zona5(mm): -0.1871570764442905
-Desviacion estandar promedio BP_zona5(mm): 2.7663777980718405
-Magnitud de la imagen promedio BP_zona5: 0.3511153577974854
+Desplazamiento promedio BP_zona5(mm): 0.14635097933452765
+Desplazamiento acumulado promedio BP_zona5(mm): 0.14635097933452765
+Desviacion estandar promedio BP_zona5(mm): 2.785780749742806
+SNR promedio BP_zona5: 1.9460942872077454
 
-Desplazamiento promedio BP_zona6(mm): -0.34839324703684144
-Desplazamiento acumulado promedio BP_zona6(mm): -0.34839324703684144
-Desviacion estandar promedio BP_zona6(mm): 2.455597656501496
-Magnitud de la imagen promedio BP_zona6: 1.6874729057393876
+Desplazamiento promedio BP_zona6(mm): 0.4468528038989218
+Desplazamiento acumulado promedio BP_zona6(mm): 0.4468528038989218
+Desviacion estandar promedio BP_zona6(mm): 2.5780836646519893
+SNR promedio BP_zona6: 3.609096446004593
 
 -----------------------------------------------------------------
-Tiempo total de procesamiento(s): 39.868079251027666
+Tiempo total de procesamiento(s): 27.57103711896343

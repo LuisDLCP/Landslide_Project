@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mplt
 from matplotlib.dates import DateFormatter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from glob import glob 
 #import RMA_real_main as RMA
 import BP_real_main as BP
 import sarPrm as sp
@@ -26,11 +27,14 @@ import datetime
 import random
 import os
 
-os.chdir(os.path.dirname(__file__)) # get the current path
+# specify the input files directory 
+dir_input_files = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/Data_set/CUENCA_Apr2021_22-04-21_14:47:51/"
+# get the current path
+os.chdir(os.path.dirname(__file__)) 
 
 show = True # esta variable muestra ciertas figuras 
-n_im = 1170 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
-i_o = 10 #100 #10 # Numero de imagen inicial(10)
+n_im = len(glob(dir_input_files+"*.hdf5")) #2 #1170 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
+i_o = 1 #10 #100 #10 # Numero de imagen inicial(10)
 
 directory0 = os.getcwd()+"/Results/RawData_"+str(n_im) # root directory to save all the results
 if not os.path.exists(directory0):
@@ -76,7 +80,7 @@ def get_images(algorithm=None):
         #dates = np.load("Dates_BP.npy")
         for i in range(n_im): #(4991):
             i += i_o # Empieza en la posicion 10
-            data = BP.main("dset_"+str(i)+".hdf5",i-i_o,directory=directory0) 
+            data = BP.main("dset_"+str(i)+".hdf5",i-i_o, dir_input= dir_input_files, directory=directory0) 
             #Ims[i] = data['Im']
             dates.append(data['date'])
             np.save(directory2 + "/Im_"+str(i)+".npy",data['Im']) # Imagenes de todo el dataset
@@ -536,7 +540,7 @@ def main():
     # Se hallan las imagenes SAR
     get_images(algorithm='BP')
     
-    # Se obtienen los parametros del Imaging-SAR
+    # Se cargan los parametros del Imaging-SAR
     data1 = np.load(directory1+"/Parameters.npy").item()
 
     # Se calculan los interferogramas
