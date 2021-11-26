@@ -3,12 +3,14 @@
 """
 Created on Mon Aug 19 17:09:44 2019
 ---------------------------------------------------
-                INTERFEROMETRIA
-                (Main Program)
+    CREATION OF SAR DISPLACEMENT MAPS BY USING 
+              INSAR INTERFEROMETRY
+                 (Main Program)
 ---------------------------------------------------
-* Se obtendran los mapas de desplazamientos 
-* Se obtendran las curvas de desplazamientos 
-* Se usara el algoritmo FDBP para la formacion de imagenes
+Results:
+  * Displacement maps
+  * Statistical graphs 
+  * SAR Imaging Algorithm: FDBP 
 
 @author: LuisDLCP
 """
@@ -28,7 +30,8 @@ import random
 import os
 
 # specify the input files directory 
-dir_input_files = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/Data_set/CUENCA_Apr2021_22-04-21_14:47:51/"
+root_path = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/"
+dir_input_files = root_path + "Data_set/Cuenca_Apr-Oct2021_test2/"
 # get the current path
 os.chdir(os.path.dirname(__file__)) 
 
@@ -36,7 +39,9 @@ show = True # esta variable muestra ciertas figuras
 n_im = len(glob(dir_input_files+"*.hdf5")) #2 #1170 #1805 #2000 #5 #1170 #400 #1170 #4656 # Numero de imagenes a considerar
 i_o = 1 #10 #100 #10 # Numero de imagen inicial(10)
 
-directory0 = os.getcwd()+"/Results/RawData_"+str(n_im) # root directory to save all the results
+#directory0 = os.getcwd()+"/Results/RawData_"+str(n_im) # root directory to save all the results
+dir_aux = dir_input_files.strip("/").split("/")
+directory0 = root_path + "Algoritmo_procesamiento/Results/" + dir_aux[-1] + "/"
 if not os.path.exists(directory0):
     os.makedirs(directory0)
 

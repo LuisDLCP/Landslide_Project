@@ -23,23 +23,30 @@ Scripts
 --------
 	Main file: 
 	----------
-	"Interferometria_main.py"
+	"main.py"
 
 	Dependencies:
 	-------------
-	"BP_real_main.py": The FDBP Algorithm is implemented here.
+	"imagingAlgorithm.py": The FDBP Algorithm is implemented here.
 	"sarPrm.py": All the parameters(electrical, mechanical, 		
 	           geometrical) are defined here.
 	"drawFigures.py": Useful drawing function are found here.
-	"SARdata.py": Theoric Raw Data code is developed here.
+	*"sarData.py": Theoric Raw Data code is developed here. Just include it 
+		      if you need to generate theoric data set. 
 
 How it works?
 --------------
-	1) Create an INPUT folder to save the input files. 
-	2) Open the main script "Interferometria_main.py"
-	   and specify the INPUT folder path in the variable 
-	   "dir_input_files" located in the header of the 
-	   script. 
-	3) The OUTPUT files will be saved in the folder 
-	   ~/Results/RawData_n, where 'n' is the number of 
-	   files. 
+~ : '/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/
+     Desarrollo_v2/Software/Procesamiento/'
+
+	1) Create a new folder "new_folder", which contains the raw data, and save it
+           in the following path:
+	                           ~/DataSet/new_folder/
+
+	2) Modify the script "main.py", by specifying the raw data folder path in the 
+           variable "dir_input_files".
+
+	3) The OUTPUT files will be saved in the folder (created automatically): 
+	                            ~/Results/new_folder/
+
+

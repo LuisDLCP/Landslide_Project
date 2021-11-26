@@ -16,15 +16,16 @@ Descripción:
 
 @author: LUIS_DlCp
 """
-import numpy as np
+import libraries.sarPrm as sp # Library created to define sistem parameters
+import libraries.drawFigures as dF # Library created to draw FFT functions
+
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import scipy.interpolate as sc
 import matplotlib.pyplot as plt
-import sarPrm as sp # Library created to define sistem parameters
-import drawFigures as dF # Library created to draw FFT functions
+import numpy as np
+import h5py as hp
 import timeit
 import time
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-import h5py as hp
 import os
 
 os.chdir(os.path.dirname(__file__))

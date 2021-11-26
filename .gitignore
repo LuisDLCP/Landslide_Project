@@ -1,5 +1,6 @@
 # remove this folders
 Results/
+DataSet/
 
 # remove this files 
 *.png
