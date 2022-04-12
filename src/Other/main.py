@@ -59,17 +59,6 @@ directory2 = directory1+"/data" # directory to save data
 if not os.path.exists(directory2):
     os.makedirs(directory2)
 
-def sort_files(files_path):
-    archivos = glob(files_path + "*hdf5")
-    def get_number(x):
-        file_path = x.split('/')[-1]
-        return int(file_path[5:-5])
-    sorted_files = sorted(archivos, key=get_number)
-    for j in range(len(sorted_files)):
-        os.rename(sorted_files[j], files_path + f"dset_{j+1}.hdf5")
-    #
-    return "HDF5 files were sorted!"    
-    
 def get_images(algorithm=None):
     """ Esta funcion se encarga de graficar las imagenes SAR usando un algoritmo dado por 
         "algorithm", luego guarda la siguiente informacion en la siguiente ruta:
@@ -601,9 +590,6 @@ def get_processing_time(start_time, end_time):
 def main():
     plt.close('all')
     start_time = timeit.default_timer() 
-    
-    # Sort input files
-    sort_files(dir_input_files)
 
     # Se hallan las imagenes SAR
     get_images(algorithm='BP')
