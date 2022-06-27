@@ -32,9 +32,9 @@ import timeit
 import time
 import os
 
-# Specify the INPUT folder 
+# Specify the INPUT folder (only change this 2 lines)
 root_path = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/"
-dir_input_files = root_path + "DataSet/2021/Cuenca_Dec2021/"
+dir_input_files = root_path + "DataSet/2022/Cuenca_Apr2022/"
 #dir_input_files = root_path + "DataSet/test/" # test
 
 # get the current path
@@ -304,12 +304,12 @@ def make_interferometry(data,algorithm=None):
     # Hallando la curva de distancias vs tiempo
     #-------Definiendo las zonas--------------
     zone0 = np.array([0,len(Im2),0,len(Im2[0])])# ([0,700,0,600]) Toda la imagen
-    zone1 = np.array([0,200,100,300]) # Parte de la imagen
-    zone2 = np.array([0,200,300,500])
-    zone3 = np.array([200,400,100,300])
-    zone4 = np.array([200,400,300,500])
-    zone5 = np.array([400,600,100,300])
-    zone6 = np.array([400,600,300,500])
+    zone1 = np.array([500,600,100,200]) # Parte de la imagen
+    zone2 = np.array([500,600,200,300])
+    zone3 = np.array([500,600,300,400])
+    zone4 = np.array([500,600,400,500])
+    zone5 = np.array([600,700,200,300])
+    zone6 = np.array([600,700,300,400])
     zone_indexes = {0:zone0,1:zone1,2:zone2,3:zone3,4:zone4,5:zone5,6:zone6}
 
     desp = np.zeros((len(zone_indexes),n_im-1)) # Variable y: desplazamiento
@@ -603,10 +603,10 @@ def main():
     start_time = timeit.default_timer() 
     
     # Sort input files
-    sort_files(dir_input_files)
+    #sort_files(dir_input_files)
 
     # Se hallan las imagenes SAR
-    get_images(algorithm='BP')
+    #get_images(algorithm='BP')
     
     # Se cargan los parametros del Imaging-SAR
     data1 = np.load(directory1+"/Parameters.npy").item()
