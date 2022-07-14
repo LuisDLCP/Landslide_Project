@@ -34,7 +34,7 @@ import os
 
 # Specify the INPUT folder (only change this 2 lines)
 root_path = "/media/soporte/e2a2d167-bcfd-400a-91c8-f1236df2f7e4/soporte/Landslide_Project/Desarrollo_v2/Software/Procesamiento/"
-dir_input_files = root_path + "DataSet/2022/Cuenca_Apr2022/"
+dir_input_files = root_path + "DataSet/2022/Cuenca_Jan2022_test/"
 #dir_input_files = root_path + "DataSet/test/" # test
 
 # get the current path
@@ -602,11 +602,11 @@ def main():
     plt.close('all')
     start_time = timeit.default_timer() 
     
-    # Sort input files
-    #sort_files(dir_input_files)
+    ## Sort input files
+    sort_files(dir_input_files)
 
     # Se hallan las imagenes SAR
-    #get_images(algorithm='BP')
+    get_images(algorithm='BP')
     
     # Se cargan los parametros del Imaging-SAR
     data1 = np.load(directory1+"/Parameters.npy").item()
